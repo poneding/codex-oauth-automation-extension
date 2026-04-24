@@ -1,0 +1,326 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+
+<body>
+  <header>
+    <div class="header-left" aria-hidden="true"></div>
+    <div class="header-btns">
+      <div class="run-group">
+        <input type="number" id="input-run-count" class="run-count-input" value="1" min="1" max="50" title="运行次数" />
+        <button id="btn-auto-run" class="btn btn-success" title="自动执行全部步骤">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3" />
+          </svg>
+          自动
+        </button>
+        <button id="btn-stop" class="btn btn-danger" title="停止当前流程" disabled>停止</button>
+      </div>
+      <button id="btn-reset" class="btn btn-ghost" title="重置全部步骤">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="1 4 1 10 7 10" />
+          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <section id="data-section">
+    <div id="settings-card" class="data-card">
+      <div class="data-row">
+        <span class="data-label">来源</span>
+        <span class="data-value">后台 Native Host</span>
+      </div>
+      <div class="data-row" id="row-vps-url">
+        <span class="data-label">CPA API</span>
+        <div class="input-with-icon">
+          <input type="password" id="input-vps-url" class="data-input data-input-with-icon"
+            placeholder="http://127.0.0.1:8317" />
+          <button id="btn-toggle-vps-url" class="input-icon-btn" type="button" aria-label="显示 CPA API 地址"
+            title="显示 CPA API 地址"></button>
+        </div>
+      </div>
+      <div class="data-row" id="row-vps-password">
+        <span class="data-label">管理密钥</span>
+        <div class="input-with-icon">
+          <input type="password" id="input-vps-password" class="data-input data-input-with-icon"
+            placeholder="请输入 CPA 管理密钥" />
+          <button id="btn-toggle-vps-password" class="input-icon-btn" type="button" aria-label="显示管理密钥"
+            title="显示管理密钥"></button>
+        </div>
+      </div>
+      <div class="data-row">
+        <span class="data-label">账户密码</span>
+        <div class="input-with-icon">
+          <input type="password" id="input-password" class="data-input data-input-with-icon"
+            placeholder="codex密码，留空则自动生成" />
+          <button id="btn-toggle-password" class="input-icon-btn" type="button" aria-label="显示密码" title="显示密码"></button>
+        </div>
+      </div>
+      <div class="data-row">
+        <span class="data-label">收码方式</span>
+        <div class="data-inline">
+          <select id="select-mail-provider" class="data-select">
+            <option value="custom">Gmail IMAP + App Password</option>
+          </select>
+          <button id="btn-mail-login" class="btn btn-outline btn-sm data-inline-btn" type="button">测试 IMAP</button>
+        </div>
+      </div>
+      <div class="data-row">
+        <span class="data-label">IMAP邮箱</span>
+        <input type="text" id="input-gmail-imap-email" class="data-input" placeholder="worker@gmail.com" />
+      </div>
+      <div class="data-row">
+        <span class="data-label">App密码</span>
+        <div class="input-with-icon">
+          <input type="password" id="input-gmail-imap-app-password" class="data-input data-input-with-icon"
+            placeholder="xxxx xxxx xxxx xxxx" />
+          <button id="btn-toggle-gmail-imap-app-password" class="input-icon-btn" type="button" aria-label="显示 Gmail App Password"
+            title="显示 Gmail App Password"></button>
+        </div>
+      </div>
+      <div class="data-row">
+        <span class="data-label">IMAP Host</span>
+        <input type="text" id="input-gmail-imap-host" class="data-input mono" placeholder="imap.gmail.com" />
+      </div>
+      <div class="data-row">
+        <span class="data-label">IMAP Port</span>
+        <input type="number" id="input-gmail-imap-port" class="data-input mono" placeholder="993" min="1" step="1" />
+      </div>
+      <div class="data-row">
+        <span class="data-label">注册邮箱</span>
+        <div class="data-inline">
+          <input type="text" id="input-email" class="data-input" placeholder="自动生成或手动粘贴邮箱" />
+          <button id="btn-fetch-email" class="btn btn-outline btn-sm data-inline-btn" type="button">获取</button>
+        </div>
+      </div>
+      <div class="email-list-tabs" role="tablist" aria-label="邮箱列表">
+        <button
+          id="btn-pending-email-tab"
+          class="email-list-tab is-active"
+          type="button"
+          role="tab"
+          aria-selected="true"
+          aria-controls="custom-email-panel"
+        >
+          待注册邮箱
+        </button>
+        <button
+          id="btn-registered-email-tab"
+          class="email-list-tab"
+          type="button"
+          role="tab"
+          aria-selected="false"
+          aria-controls="registered-email-panel"
+        >
+          已注册邮箱
+        </button>
+      </div>
+      <div id="custom-email-panel" class="custom-email-panel">
+        <div class="section-mini-header">
+          <div class="section-mini-copy">
+            <span class="section-label">待注册邮箱列表</span>
+            <span class="data-value">支持直接编辑或粘贴导入；后台会按列表顺序消费，验证码通过 Gmail IMAP 后台获取。</span>
+          </div>
+          <div class="section-mini-actions">
+            <button id="btn-custom-email-reset-progress" class="btn btn-ghost btn-xs" type="button">重置进度</button>
+          </div>
+        </div>
+        <div class="data-row custom-email-list-row">
+          <span class="data-label">待注册</span>
+          <textarea id="input-custom-email-list" class="data-textarea mono"
+            placeholder="每行一个邮箱&#10;alpha@example.com&#10;bravo@example.com"></textarea>
+        </div>
+        <div id="custom-email-summary" class="custom-email-summary">按行录入待注册邮箱，后台会按列表顺序消费。</div>
+        <div class="custom-email-stats" role="list" aria-label="自定义邮箱列表状态">
+          <div class="custom-email-stat" role="listitem">
+            <span class="custom-email-stat-label">当前</span>
+            <span id="custom-email-current" class="custom-email-stat-value mono truncate">未分配</span>
+          </div>
+          <div class="custom-email-stat" role="listitem">
+            <span class="custom-email-stat-label">下一封</span>
+            <span id="custom-email-next" class="custom-email-stat-value mono truncate">待配置</span>
+          </div>
+          <div class="custom-email-stat" role="listitem">
+            <span class="custom-email-stat-label">剩余</span>
+            <span id="custom-email-remaining" class="custom-email-stat-value mono">0</span>
+          </div>
+        </div>
+        <div id="custom-email-preview" class="custom-email-preview" aria-live="polite"></div>
+      </div>
+      <div id="registered-email-panel" class="custom-email-panel" hidden>
+        <div class="section-mini-header">
+          <div class="section-mini-copy">
+            <span class="section-label">已注册邮箱列表</span>
+            <span class="data-value">已完成注册并成功同步到 CPA 的邮箱会自动归档；支持直接编辑、清空和整段导入。</span>
+          </div>
+          <div class="section-mini-actions">
+            <button id="btn-registered-email-clear" class="btn btn-ghost btn-xs" type="button">清空</button>
+          </div>
+        </div>
+        <div class="data-row custom-email-list-row">
+          <span class="data-label">已注册</span>
+          <textarea id="input-registered-email-list" class="data-textarea mono"
+            placeholder="每行一个邮箱&#10;done@example.com&#10;ok@example.com"></textarea>
+        </div>
+        <div id="registered-email-summary" class="custom-email-summary">已注册邮箱列表为空，可手动编辑、粘贴导入或等待成功注册后自动归档。</div>
+        <div id="registered-email-preview" class="custom-email-preview" aria-live="polite"></div>
+      </div>
+      <div class="data-row">
+        <span class="data-label">延迟</span>
+        <div class="data-inline auto-delay-inline">
+          <div class="auto-delay-side auto-delay-side-left">
+            <label class="toggle-switch" for="input-auto-delay-enabled">
+              <input type="checkbox" id="input-auto-delay-enabled" />
+              <span class="toggle-switch-track" aria-hidden="true">
+                <span class="toggle-switch-thumb"></span>
+              </span>
+            </label>
+            <div class="auto-delay-controls">
+              <input type="number" id="input-auto-delay-minutes" class="data-input auto-delay-input" value="30" min="1"
+                max="1440" step="1" title="启动前倒计时分钟数" />
+              <span class="data-unit">分钟</span>
+            </div>
+          </div>
+          <div class="timing-field timing-field-labeled timing-field-right auto-delay-side auto-delay-side-right">
+            <span class="auto-delay-caption">步间间隔</span>
+            <div class="auto-delay-controls">
+              <input type="number" id="input-auto-step-delay-seconds" class="data-input auto-delay-input" value=""
+                min="0" max="600" step="1" title="步间延迟秒数，0 或留空则不延迟" />
+              <span class="data-unit">秒</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="data-row">
+        <span class="data-label">自动重试</span>
+        <div class="data-inline fallback-inline">
+          <label class="toggle-switch" for="input-auto-skip-failures">
+            <input type="checkbox" id="input-auto-skip-failures" />
+            <span class="toggle-switch-track" aria-hidden="true">
+              <span class="toggle-switch-thumb"></span>
+            </span>
+          </label>
+          <div class="timing-field timing-field-labeled timing-field-right fallback-thread-interval">
+            <span class="auto-delay-caption">线程间隔</span>
+            <div class="auto-delay-controls">
+              <input type="number" id="input-auto-skip-failures-thread-interval-minutes" class="data-input auto-delay-input" value="0"
+                min="0" max="1440" step="1" title="兜底模式下，两轮线程之间的等待分钟数" />
+              <span class="data-unit">分钟</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="data-row">
+        <span class="data-label">验证码重发</span>
+        <div class="timing-field timing-field-right setting-inline-right">
+          <div class="auto-delay-controls">
+            <input type="number" id="input-verification-resend-count" class="data-input auto-delay-input" value="4"
+              min="0" max="20" step="1" title="自动点击重新发送验证码的次数" />
+            <span class="data-unit">次</span>
+          </div>
+        </div>
+      </div>
+      <div class="data-row">
+      <span class="data-label">OAuth</span>
+      <span id="display-oauth-url" class="data-value mono truncate">等待中...</span>
+    </div>
+    <div class="data-row">
+      <span class="data-label">回调</span>
+      <div class="data-inline data-value-actions">
+        <span id="display-localhost-url" class="data-value data-value-fill mono truncate">等待中...</span>
+        <button id="btn-save-settings" class="btn btn-outline btn-sm data-inline-btn" type="button">保存</button>
+      </div>
+    </div>
+    </div>
+    <div id="status-bar" class="status-bar">
+      <div class="status-dot"></div>
+      <span id="display-status">就绪</span>
+    </div>
+    <div id="auto-continue-bar" class="auto-continue-bar" style="display:none;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
+      <span class="auto-hint">先自动获取邮箱，或手动粘贴邮箱后再继续</span>
+      <button id="btn-auto-continue" class="btn btn-primary btn-sm">继续</button>
+    </div>
+    <div id="auto-schedule-bar" class="auto-schedule-bar" style="display:none;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10" />
+        <polyline points="12 6 12 12 16 14" />
+      </svg>
+      <div class="auto-schedule-copy">
+        <span id="auto-schedule-title" class="auto-schedule-title">已计划自动运行</span>
+        <span id="auto-schedule-meta" class="auto-schedule-meta">等待倒计时开始...</span>
+      </div>
+      <div class="auto-schedule-actions">
+        <button id="btn-auto-run-now" class="btn btn-primary btn-sm" type="button">立即开始</button>
+        <button id="btn-auto-cancel-schedule" class="btn btn-outline btn-sm" type="button">取消</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="steps-section">
+    <div class="steps-header">
+      <span class="section-label">流程</span>
+      <span id="steps-progress" class="steps-progress">0 / 10</span>
+    </div>
+    <div class="steps-list"></div>
+  </section>
+
+  <section id="log-section">
+    <div class="log-header">
+      <span class="section-label">日志</span>
+      <div class="log-header-actions">
+        <button id="btn-clear-log" class="btn btn-ghost btn-xs" title="清空日志">清空</button>
+      </div>
+    </div>
+    <div id="log-area"></div>
+  </section>
+
+  <div id="auto-start-modal" class="modal-overlay" hidden>
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-title">启动自动</span>
+        <button id="btn-auto-start-close" class="modal-close" type="button" aria-label="关闭">×</button>
+      </div>
+      <p id="auto-start-message" class="modal-message">检测到已有流程进度，选择继续当前还是重新开始。</p>
+      <p id="auto-start-alert" class="modal-alert" hidden></p>
+      <div id="modal-option-row" class="modal-option-row" hidden>
+        <label class="modal-option-label" for="modal-option-input">
+          <input type="checkbox" id="modal-option-input" />
+          <span id="modal-option-text">不再提示</span>
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button id="btn-auto-start-cancel" class="btn btn-ghost btn-sm" type="button">取消</button>
+        <button id="btn-auto-start-restart" class="btn btn-outline btn-sm" type="button">重新开始</button>
+        <button id="btn-auto-start-continue" class="btn btn-primary btn-sm" type="button">继续当前</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <script src="../data/step-definitions.js"></script>
+  <script src="custom-email-manager.js"></script>
+  <script src="registered-email-manager.js"></script>
+  <script src="email-list-tabs.js"></script>
+  <script src="window-scope.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+
+</html>

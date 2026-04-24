@@ -1,0 +1,11 @@
+/docs/md
+
+/.github
+/_metadata/
+.vscode
+
+/data/account-run-history.txt
+/data/account-run-history.json
+native_host/host_launcher.sh
+.npm-test.log
+.omx/
