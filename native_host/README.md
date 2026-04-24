@@ -45,6 +45,8 @@ python3 -m py_compile native_host/host.py native_host/messages.py native_host/gm
 
 安装脚本会从仓库根目录的 `manifest.json` 读取固定 `key`，自动推导解压扩展 ID 并写入 `allowed_origins`，不需要手工替换扩展 ID。
 
+注意：即使在 Edge 中，`allowed_origins` 也仍然使用 `chrome-extension://<扩展ID>/` 格式，这是 Chromium Native Messaging 的要求，不要写成 `edge-extension://...`。
+
 安装脚本还会生成本地可执行 launcher：
 
 - `native_host/host_launcher.sh`
@@ -66,6 +68,15 @@ Windows 安装脚本会：
 
 如果自动写注册表失败，脚本会额外输出一个 `.reg` 文件路径。双击导入或用管理员权限手工导入后，再重新加载扩展。
 
+如果 `edge://extensions` 里显示的当前解压扩展 ID 与 `manifest.json` 的固定 `key` 推导结果不同，请先设置：
+
+```powershell
+$env:CODEX_NATIVE_HOST_EXTRA_EXTENSION_IDS="<edge://extensions 里看到的实际扩展 ID>"
+python native_host\install_host_manifest.py
+```
+
+这样安装器会把实际 Edge 扩展 ID 也追加到 `allowed_origins`。
+
 Windows 原生宿主运行时会把 `stdin/stdout` 切到 binary mode，避免 Python 文本模式破坏 Native Messaging 的长度前缀 framing。
 
 ## 运行时要求
@@ -80,4 +91,4 @@ Windows 原生宿主运行时会把 `stdin/stdout` 切到 binary mode，避免 P
 - 这是本地主机进程，不是远程后端。
 - CPA 上传走后台 HTTP 请求，不再打开 CPA 页面。
 - Gmail 验证码获取走 IMAP，不再依赖浏览器邮箱页 DOM 轮询。
-- Edge 出现 `Specified native messaging host not found.` 时，优先检查注册表项和 `.json` manifest 是否已安装。
+- Edge 出现 `Specified native messaging host not found.` 时，优先检查注册表项、`.json` manifest，以及 `allowed_origins` 中是否包含当前 `edge://extensions` 里显示的扩展 ID。

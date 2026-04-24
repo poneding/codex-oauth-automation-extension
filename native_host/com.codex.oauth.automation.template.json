@@ -4,7 +4,6 @@
   "path": "__REPLACE_WITH_ABSOLUTE_HOST_PATH__",
   "type": "stdio",
   "allowed_origins": [
-    "chrome-extension://aepngkiemocpnceofcaneojojogaoden/",
-    "edge-extension://aepngkiemocpnceofcaneojojogaoden/"
+    "chrome-extension://aepngkiemocpnceofcaneojojogaoden/"
   ]
 }

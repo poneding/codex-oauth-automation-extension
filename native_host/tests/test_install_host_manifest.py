@@ -5,7 +5,6 @@ import shlex
 import tempfile
 
 from native_host.install_host_manifest import (
-    EDGE_EXTENSION_SCHEME,
     WINDOWS_EDGE_REGISTRY_PATH,
     WINDOWS_GOOGLE_CHROME_REGISTRY_PATH,
     build_manifest,
@@ -23,7 +22,20 @@ class InstallHostManifestTests(unittest.TestCase):
             manifest["allowed_origins"],
             [
                 "chrome-extension://aepngkiemocpnceofcaneojojogaoden/",
-                "edge-extension://aepngkiemocpnceofcaneojojogaoden/",
+            ],
+        )
+
+    def test_build_manifest_can_include_extra_extension_ids_using_chrome_scheme(self):
+        manifest = build_manifest(
+            Path("/tmp/host.py"),
+            extra_extension_ids=["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+        )
+
+        self.assertEqual(
+            manifest["allowed_origins"],
+            [
+                "chrome-extension://aepngkiemocpnceofcaneojojogaoden/",
+                "chrome-extension://bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/",
             ],
         )
 

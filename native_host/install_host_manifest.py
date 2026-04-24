@@ -15,7 +15,6 @@ from typing import Iterable
 
 HOST_NAME = "com.codex.oauth.automation"
 CHROME_EXTENSION_SCHEME = "chrome-extension"
-EDGE_EXTENSION_SCHEME = "edge-extension"
 DEFAULT_MACOS_DIR = Path.home() / "Library/Application Support/Google/Chrome/NativeMessagingHosts"
 DEFAULT_WINDOWS_DIR = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData/Local")) / "CodexOAuthAutomation" / "NativeMessagingHosts"
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -112,16 +111,40 @@ def load_extension_origin(manifest_path: Path = EXTENSION_MANIFEST_PATH) -> str:
     return f"{CHROME_EXTENSION_SCHEME}://{extension_id}/"
 
 
-def load_extension_origins(manifest_path: Path = EXTENSION_MANIFEST_PATH) -> list[str]:
-    chrome_origin = load_extension_origin(manifest_path=manifest_path)
-    extension_id = chrome_origin.removeprefix(f"{CHROME_EXTENSION_SCHEME}://").strip("/")
-    return [
-        chrome_origin,
-        f"{EDGE_EXTENSION_SCHEME}://{extension_id}/",
-    ]
+def normalize_extension_id(extension_id: str | None) -> str | None:
+    candidate = str(extension_id or "").strip().lower()
+    return candidate or None
 
 
-def build_manifest(host_script_path: Path, platform_name: str | None = None) -> dict[str, object]:
+def parse_extra_extension_ids(raw_value: str | None = None) -> list[str]:
+    values = []
+    for item in str(raw_value or "").split(","):
+        normalized = normalize_extension_id(item)
+        if normalized and normalized not in values:
+            values.append(normalized)
+    return values
+
+
+def load_extension_origins(
+    manifest_path: Path = EXTENSION_MANIFEST_PATH,
+    extra_extension_ids: Iterable[str] | None = None,
+) -> list[str]:
+    origins = [load_extension_origin(manifest_path=manifest_path)]
+    for extension_id in extra_extension_ids or ():
+        normalized_id = normalize_extension_id(extension_id)
+        if not normalized_id:
+            continue
+        origin = f"{CHROME_EXTENSION_SCHEME}://{normalized_id}/"
+        if origin not in origins:
+            origins.append(origin)
+    return origins
+
+
+def build_manifest(
+    host_script_path: Path,
+    platform_name: str | None = None,
+    extra_extension_ids: Iterable[str] | None = None,
+) -> dict[str, object]:
     launcher_path = resolve_host_launcher_path(host_script_path, platform_name=platform_name)
     return {
         "name": HOST_NAME,
@@ -129,7 +152,7 @@ def build_manifest(host_script_path: Path, platform_name: str | None = None) -> 
         "path": str(launcher_path),
         "type": "stdio",
         "allowed_origins": [
-            *load_extension_origins(),
+            *load_extension_origins(extra_extension_ids=extra_extension_ids),
         ],
     }
 
@@ -194,6 +217,7 @@ def install_windows_registry_entries(manifest_path: Path, browsers: Iterable[str
 
 def main() -> None:
     platform_name = normalize_platform_name(sys.platform)
+    extra_extension_ids = parse_extra_extension_ids(os.environ.get("CODEX_NATIVE_HOST_EXTRA_EXTENSION_IDS"))
     host_script_path = (Path(__file__).resolve().parent / "host.py").resolve()
     write_host_launcher(host_script_path, platform_name=platform_name)
     install_dir = Path(
@@ -202,7 +226,15 @@ def main() -> None:
     install_dir.mkdir(parents=True, exist_ok=True)
     target_path = install_dir / f"{HOST_NAME}.json"
     target_path.write_text(
-        json.dumps(build_manifest(host_script_path, platform_name=platform_name), ensure_ascii=False, indent=2),
+        json.dumps(
+            build_manifest(
+                host_script_path,
+                platform_name=platform_name,
+                extra_extension_ids=extra_extension_ids,
+            ),
+            ensure_ascii=False,
+            indent=2,
+        ),
         encoding="utf-8",
     )
 
