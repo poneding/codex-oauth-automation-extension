@@ -647,8 +647,61 @@ function formatAutoStepDelayInputValue(value) {
   return normalized === null ? '' : String(normalized);
 }
 
+function getPendingAutoRunTargetCount(customEmailView = getCustomEmailListView()) {
+  const numeric = Number(customEmailView?.remainingCount);
+  if (!Number.isFinite(numeric)) {
+    return 0;
+  }
+  return Math.max(0, Math.floor(numeric));
+}
+
+function hasPendingAutoRunTargets(customEmailView = getCustomEmailListView()) {
+  return getPendingAutoRunTargetCount(customEmailView) > 0;
+}
+
+function syncPendingAutoRunTargetCountInput(customEmailView = getCustomEmailListView()) {
+  if (!inputRunCount) {
+    return;
+  }
+  inputRunCount.value = String(getPendingAutoRunTargetCount(customEmailView));
+}
+
 function getRunCountValue() {
-  return Math.min(50, Math.max(1, parseInt(inputRunCount.value, 10) || 1));
+  return getPendingAutoRunTargetCount();
+}
+
+function isSettingsControlLockExempt(control) {
+  return String(control?.dataset?.allowWhileLocked || '').trim().toLowerCase() === 'true';
+}
+
+function applySettingsControlLock(control, locked) {
+  if (!control || !('disabled' in control) || isSettingsControlLockExempt(control)) {
+    return;
+  }
+
+  if (locked) {
+    if (control.dataset.lockStateApplied !== 'true') {
+      control.dataset.lockStateApplied = 'true';
+      control.dataset.lockedDisabled = String(Boolean(control.disabled));
+    }
+    control.disabled = true;
+    return;
+  }
+
+  if (control.dataset.lockStateApplied === 'true') {
+    control.disabled = control.dataset.lockedDisabled === 'true';
+    delete control.dataset.lockStateApplied;
+    delete control.dataset.lockedDisabled;
+  }
+}
+
+function updateAutoRunButtonState(customEmailView = getCustomEmailListView()) {
+  const hasTargets = hasPendingAutoRunTargets(customEmailView);
+  syncPendingAutoRunTargetCountInput(customEmailView);
+  btnAutoRun.disabled = currentAutoRun.autoRunning || !hasTargets;
+  btnAutoRun.title = hasTargets
+    ? '自动执行全部步骤'
+    : '待注册邮箱列表为空，无法启动自动运行';
 }
 
 function updateFallbackThreadIntervalInputState() {
@@ -821,7 +874,9 @@ function setSettingsCardLocked(locked) {
     return;
   }
   settingsCard.classList.toggle('is-locked', locked);
-  settingsCard.toggleAttribute('inert', locked);
+  settingsCard
+    .querySelectorAll('input, textarea, select, button')
+    .forEach((control) => applySettingsControlLock(control, locked));
 }
 
 async function setRuntimeEmailState(email) {
@@ -932,8 +987,7 @@ function applyAutoRunStatus(payload = currentAutoRun) {
 
   setSettingsCardLocked(settingsCardLocked);
 
-  inputRunCount.disabled = currentAutoRun.autoRunning;
-  btnAutoRun.disabled = currentAutoRun.autoRunning;
+  updateAutoRunButtonState();
   btnFetchEmail.disabled = locked
     || isCustomMailProvider();
   inputEmail.disabled = locked;
@@ -1191,6 +1245,8 @@ function updateMailLoginButtonState() {
 function updateMailProviderUI() {
   const customEmailView = getCustomEmailListView();
   const registeredEmailView = renderRegisteredEmailState();
+  syncPendingAutoRunTargetCountInput(customEmailView);
+  updateAutoRunButtonState(customEmailView);
   updateMailLoginButtonState();
   renderCustomEmailState();
   if (customEmailPanel) {
@@ -1260,6 +1316,7 @@ function updateButtonStates() {
   const anyRunning = Object.values(statuses).some(s => s === 'running');
   const autoLocked = isAutoRunLockedPhase();
   const autoScheduled = isAutoRunScheduledPhase();
+  const customEmailView = getCustomEmailListView();
 
   for (const step of STEP_IDS) {
     const btn = document.querySelector(`.step-btn[data-step="${step}"]`);
@@ -1305,6 +1362,7 @@ function updateButtonStates() {
   });
 
   btnReset.disabled = anyRunning || autoScheduled || isAutoRunPausedPhase() || autoLocked;
+  updateAutoRunButtonState(customEmailView);
   renderCustomEmailState();
   updateStopButtonState(anyRunning || autoScheduled || isAutoRunPausedPhase() || autoLocked);
 }
@@ -1804,7 +1862,10 @@ btnAutoStartClose?.addEventListener('click', () => resolveModalChoice(null));
 // Auto Run
 btnAutoRun.addEventListener('click', async () => {
   try {
-    const totalRuns = getRunCountValue();
+    const totalRuns = getPendingAutoRunTargetCount();
+    if (totalRuns <= 0) {
+      throw new Error('待注册邮箱列表为空，无法启动自动运行。');
+    }
     let mode = 'restart';
     const autoRunSkipFailures = inputAutoSkipFailures.checked;
     const fallbackThreadIntervalMinutes = normalizeAutoRunThreadIntervalMinutes(
@@ -1834,7 +1895,6 @@ btnAutoRun.addEventListener('click', async () => {
     }
 
     btnAutoRun.disabled = true;
-    inputRunCount.disabled = true;
     const delayEnabled = inputAutoDelayEnabled.checked;
     const delayMinutes = normalizeAutoDelayMinutes(inputAutoDelayMinutes.value);
     inputAutoDelayMinutes.value = String(delayMinutes);
@@ -1856,7 +1916,7 @@ btnAutoRun.addEventListener('click', async () => {
     }
   } catch (err) {
     setDefaultAutoRunButton();
-    inputRunCount.disabled = false;
+    updateAutoRunButtonState();
     showToast(err.message, 'error');
   }
 });
@@ -2046,10 +2106,10 @@ selectMailProvider.addEventListener('change', async () => {
 });
 
 inputRunCount.addEventListener('input', () => {
-  updateFallbackThreadIntervalInputState();
+  syncPendingAutoRunTargetCountInput();
 });
 inputRunCount.addEventListener('blur', () => {
-  inputRunCount.value = String(getRunCountValue());
+  syncPendingAutoRunTargetCountInput();
   updateFallbackThreadIntervalInputState();
 });
 

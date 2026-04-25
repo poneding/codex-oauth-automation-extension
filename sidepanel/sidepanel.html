@@ -18,7 +18,7 @@
     <div class="header-left" aria-hidden="true"></div>
     <div class="header-btns">
       <div class="run-group">
-        <input type="number" id="input-run-count" class="run-count-input" value="1" min="1" max="50" title="运行次数" />
+        <input type="number" id="input-run-count" class="run-count-input" value="0" min="0" hidden aria-hidden="true" tabindex="-1" />
         <button id="btn-auto-run" class="btn btn-success" title="自动执行全部步骤">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
             <polygon points="5 3 19 12 5 21 5 3" />
@@ -49,7 +49,7 @@
           <input type="password" id="input-vps-url" class="data-input data-input-with-icon"
             placeholder="http://127.0.0.1:8317" />
           <button id="btn-toggle-vps-url" class="input-icon-btn" type="button" aria-label="显示 CPA API 地址"
-            title="显示 CPA API 地址"></button>
+            title="显示 CPA API 地址" data-allow-while-locked="true"></button>
         </div>
       </div>
       <div class="data-row" id="row-vps-password">
@@ -58,7 +58,7 @@
           <input type="password" id="input-vps-password" class="data-input data-input-with-icon"
             placeholder="请输入 CPA 管理密钥" />
           <button id="btn-toggle-vps-password" class="input-icon-btn" type="button" aria-label="显示管理密钥"
-            title="显示管理密钥"></button>
+            title="显示管理密钥" data-allow-while-locked="true"></button>
         </div>
       </div>
       <div class="data-row">
@@ -66,7 +66,7 @@
         <div class="input-with-icon">
           <input type="password" id="input-password" class="data-input data-input-with-icon"
             placeholder="codex密码，留空则自动生成" />
-          <button id="btn-toggle-password" class="input-icon-btn" type="button" aria-label="显示密码" title="显示密码"></button>
+          <button id="btn-toggle-password" class="input-icon-btn" type="button" aria-label="显示密码" title="显示密码" data-allow-while-locked="true"></button>
         </div>
       </div>
       <div class="data-row">
@@ -88,7 +88,7 @@
           <input type="password" id="input-gmail-imap-app-password" class="data-input data-input-with-icon"
             placeholder="xxxx xxxx xxxx xxxx" />
           <button id="btn-toggle-gmail-imap-app-password" class="input-icon-btn" type="button" aria-label="显示 Gmail App Password"
-            title="显示 Gmail App Password"></button>
+            title="显示 Gmail App Password" data-allow-while-locked="true"></button>
         </div>
       </div>
       <div class="data-row">
@@ -114,6 +114,7 @@
           role="tab"
           aria-selected="true"
           aria-controls="custom-email-panel"
+          data-allow-while-locked="true"
         >
           待注册邮箱
         </button>
@@ -124,6 +125,7 @@
           role="tab"
           aria-selected="false"
           aria-controls="registered-email-panel"
+          data-allow-while-locked="true"
         >
           已注册邮箱
         </button>
